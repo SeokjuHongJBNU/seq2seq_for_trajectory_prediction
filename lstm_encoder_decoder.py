@@ -144,7 +144,8 @@ class lstm_seq2seq(nn.Module):
 
         # initialize array of losses
         losses = np.full(n_epochs, np.nan)
-
+        val_losses = np.full(n_epochs, np.nan)
+        losses2 = np.full(n_epochs, np.nan)
         optimizer = optim.Adam(self.parameters(), lr = learning_rate)
         criterion = nn.MSELoss().cuda()
 
@@ -156,6 +157,7 @@ class lstm_seq2seq(nn.Module):
             for it in tr:
                 
                 batch_loss = 0.
+                batch_loss2 = 0.
                 batch_loss_tf = 0
                 batch_loss_no_tf = 0.
                 num_tf = 0
@@ -224,8 +226,9 @@ class lstm_seq2seq(nn.Module):
 
                     # outputs[:,:,0:2]
                     loss = criterion(outputs[:,:,0:4].to(device='cuda'), target_batch[:,:,0:4].to(device='cuda')).to(device='cuda')
-
+                    loss2 = criterion(outputs[:,:,0:2].to(device='cuda'), target_batch[:,:,0:2].to(device='cuda')).to(device='cuda')
                     batch_loss += loss.item()
+                    batch_loss2 += loss2.item()
                     # print(loss)
                     # backpropagation
                     loss.backward()
@@ -233,7 +236,9 @@ class lstm_seq2seq(nn.Module):
 
                 # loss for epoch 
                 batch_loss /= n_batches
-                losses[it] = batch_loss
+                batch_loss2 /= n_batches
+                losses[it] =  batch_loss
+                losses2[it] = batch_loss2
                 #plt.savefig('batch_plot')
                 #plt.close() 
 
@@ -242,7 +247,7 @@ class lstm_seq2seq(nn.Module):
                     teacher_forcing_ratio = teacher_forcing_ratio - 0.02 
                 loss_temp2 = 0
                 intv = 50
-                for i in range(0, X_test_input.shape[1], intv):  # 25
+                for i in range(0, X_test_input.shape[1], intv):  # 25 # val loss 구하는 과정
                     Y_test_pred = self.predict(X_test_input[:, i ,:], target_len)
                     #print(Y_test_pred.shape)
                     #loss_temp = criterion(Y_test_GT[:, i ,0:2], torch.from_numpy(Y_test_pred[:, 0:2]).type(torch.Tensor).cuda()).cpu().detach().numpy()
@@ -251,19 +256,20 @@ class lstm_seq2seq(nn.Module):
                     loss_temp2 += loss_temp.item()
                 #l_mean = (loss_temp2 / X_test_input.shape[1])
                 l_mean = (loss_temp2 / (X_test_input.shape[1]/intv))
-
+                val_losses[it] = l_mean
                 # progress bar 
                 print('')
                 tr.set_postfix(tr_loss="{0:.5f}".format(batch_loss), val_loss="{0:.5f}".format(l_mean))
 
-                if l_mean < 0.00595:
-                    iter_break = iter_break + 1
-                    print(iter_break)
+                # if l_mean < 0.00595:
+                #     iter_break = iter_break + 1
+                #     print(iter_break)
 
-                if iter_break >= 5:
-                    break
-                    
-        return losses
+                # if iter_break >= 5:
+                #     break
+                
+        
+        return losses, val_losses, losses2
 
     def predict(self, input_tensor, target_len):
         
