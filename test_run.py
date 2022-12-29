@@ -12,11 +12,11 @@ import generate_dataset
 import lstm_encoder_decoder
 import plotting_TestResult
 import build_data
-iw = 20
-ow = 10
+iw = 12
+ow = 8
 s = 1
 num_feature = 4
-file = '2_1_data_20_10_1_4'
+file = '2_1_data_12_8_1_4'
 
 # matplotlib.rcParams.update({'font.size': 17})
 #----------------------------------------------------------------------------------------------------------------

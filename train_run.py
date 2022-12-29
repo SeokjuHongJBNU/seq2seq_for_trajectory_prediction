@@ -20,12 +20,11 @@ cuda = torch.device('cuda')
 #--------------------------------------------------------------------------------------------------------------------------
 
 # 1. Data Import
-iw = 20
-ow = 10
+iw = 12
+ow = 8
 s = 1
 num_feature = 4
-file = '2_1_data_20_10_1_4'
-
+file = '2_1_data_12_8_1_4'
 
 
 X_train, Y_train, X_test, Y_test = build_data.make_dataset(iw, ow, s, num_feature)
